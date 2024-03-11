@@ -1,0 +1,10 @@
+<launch>
+    <!-- Other configurations -->
+    
+    <node name="realsense2_camera_manager" pkg="nodelet" type="nodelet" args="manager" output="screen" />
+    <node pkg="nodelet" type="nodelet" name="cam_2/realsense2_camera" args="load realsense2_camera_manager realsense2_camera/RealSenseNodeFactory $(arg camera)" output="screen">
+        <param name="depth_fps" value="120"/>
+    </node>
+
+    <!-- Other configurations -->
+</launch>

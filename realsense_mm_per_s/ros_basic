@@ -1,0 +1,80 @@
+
+
+import tf
+import cv2
+import math
+import rospy
+import torch
+import numpy as np
+import message_filters
+from ultralytics import YOLO
+from cv_bridge import CvBridge
+from sensor_msgs.msg import Image, CameraInfo
+
+import time
+
+
+def cal_fastlate(image_resault):
+    pass
+
+
+def publisher_image( image_rgb):
+    bridge = CvBridge()
+    # combined_frame = bridge.cv2_to_imgmsg(img_rresault, "bgr8")
+    # im_combi = rospy.Publisher('im_combi', Image)
+    # im_combi.publish(combined_frame)
+    combined_frame0 = bridge.cv2_to_imgmsg(image_rgb, "passthrough")
+    im_combi0 = rospy.Publisher('im_combi1', Image)
+    im_combi0.publish(combined_frame0)
+
+
+
+
+def callback(data1, data2):
+    try:
+        t0 = time.time()
+        cv_image1 = CvBridge().imgmsg_to_cv2(data1, desired_encoding="passthrough")
+        # cv_image1 = cv2.cvtColor(cv_image1, cv2.COLOR_BGR2RGB)
+        cv_image2 = CvBridge().imgmsg_to_cv2(data2, desired_encoding="passthrough")
+        # cv_image2 = cv2.cvtColor(cv_image2, cv2.COLOR_BGR2RGB)
+        cv_image2 = cv2.resize(cv_image2,(640,480))
+        print(cv_image1.shape,cv_image2.shape)
+
+        # print(cv_image1.shape,cv_image2.shape)
+
+        combined_frame_CONCAT = cv2.hconcat([cv_image2, cv_image1])
+        combined_frame_CV = cv2.rotate(combined_frame_CONCAT, cv2.ROTATE_90_COUNTERCLOCKWISE)
+        # # binary_image = canny_edge_detection(combined_frame_CV)
+        # # binary_image_rgb = cv2.cvtColor(binary_image, cv2.COLOR_GRAY2RGB)
+
+        # cv2.imshow('combined_frame_CV',cv2.resize(combined_frame_CV.copy(),(combined_frame_CV.shape[1]//2,combined_frame_CV.shape[0]//2)))
+        # cv2.waitKey(0)
+
+        publisher_image(combined_frame_CV)
+
+        tp = time.time() - t0
+        fps = 1 / tp
+        print(fps)  # Print FPS
+    except Exception as e:
+        print(e)
+
+
+
+
+if __name__ == '__main__':       
+
+
+    rospy.init_node('realsense2_camera')
+
+    # sub_rgb1 = message_filters.Subscriber("/cam_1/color/image_raw", Image)
+    # sub_rgb2 = message_filters.Subscriber("/cam_2/color/image_raw", Image)
+    sub_rgb1 = message_filters.Subscriber("/cam_1/aligned_depth_to_color/image_raw", Image)
+    sub_rgb2 = message_filters.Subscriber("/cam_2/aligned_depth_to_color/image_raw", Image)
+    
+    # ApproximateTimeSynchronizer with a 0.1 second delay tolerance
+    ts = message_filters.ApproximateTimeSynchronizer([sub_rgb1, sub_rgb2], 10, 0.1, allow_headerless=True)
+    ts.registerCallback(callback)
+
+
+    rospy.spin()
+
