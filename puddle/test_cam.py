@@ -11,6 +11,8 @@ import os
 import torch.nn as nn
 from torchvision import transforms
 from PIL import Image
+import cv2 
+
 
 idx = 13
 name_path = os.listdir('/home/hankla/Desktop/work/puddle_deploy/data_test/2024-01-10/thermal')
